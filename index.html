@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROBLOX SCRIPT HUB - Admin Panel</title>
+    <!-- Tailwind CSS & FontAwesome & Google Fonts (Prompt) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        prompt: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#0b0f19',
+                        cardBg: '#131c2e',
+                        accentGreen: '#10b981',
+                        accentPurple: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #0b0f19; color: #f3f4f6; }
+        .glow-effect { box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); }
+        .glow-border { border: 1px solid rgba(139, 92, 246, 0.3); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 bg-darkBg/80 backdrop-blur-md border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-purple-500/30">
+                    <i class="fa-solid fa-code text-xl"></i>
+                </div>
+                <span class="text-xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent">ROBLOX SCRIPTS</span>
+            </div>
+
+            <!-- Search & Actions -->
+            <div class="flex items-center space-x-4">
+                <div id="userAuthArea" class="flex items-center">
+                    <!-- Dynamic Auth Button / Profile -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- HOME VIEW (Script List) -->
+        <div id="homeView" class="space-y-6">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-darkBg border border-purple-500/20 p-8 md:p-12 glow-effect">
+                <div class="relative z-10 max-w-2xl">
+                    <span class="bg-purple-500/20 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full border border-purple-500/30 uppercase tracking-wider">Free Hub Script</span>
+                    <h1 class="text-3xl md:text-5xl font-extrabold mt-4 tracking-tight">ศูนย์รวมสคริปต์ Roblox อัปเดตใหม่ล่าสุด</h1>
+                    <p class="text-gray-400 mt-3 text-sm md:text-base">เลือกสคริปต์ที่คุณต้องการใช้งาน คัดลอกโค้ดไปรันใน executor ได้ทันที ปลอดภัย ไวรัสฟรี</p>
+                </div>
+                <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="relative w-full md:w-96">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="filterScripts()" placeholder="ค้นหาชื่อเกมหรือชื่อสคริปต์..." class="w-full pl-11 pr-4 py-3 bg-cardBg border border-gray-800 rounded-xl focus:outline-none focus:border-purple-500 text-sm transition">
+                </div>
+
+                <!-- Admin Action Button -->
+                <div id="adminActionBtnContainer"></div>
+            </div>
+
+            <!-- Scripts Grid -->
+            <div id="scriptsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Script Cards will be injected here -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-16">
+                <div class="text-gray-600 text-5xl mb-3"><i class="fa-solid fa-folder-open"></i></div>
+                <p class="text-gray-400 text-lg">ไม่พบสคริปต์ที่คุณค้นหา</p>
+            </div>
+        </div>
+
+        <!-- ADMIN DASHBOARD VIEW (Add/Manage Scripts) -->
+        <div id="adminView" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center space-x-2">
+                        <i class="fa-solid fa-shield-halved text-purple-500"></i>
+                        <span>แผงควบคุมผู้ดูแลระบบ (Admin Panel)</span>
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">จัดการ เพิ่ม หรือลบสคริปต์ภายในเว็บไซต์</p>
+                </div>
+                <button onclick="switchTab('home')" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-sm font-medium rounded-xl transition flex items-center space-x-2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>กลับหน้าหลัก</span>
+                </button>
+            </div>
+
+            <!-- Add Script Form Card -->
+            <div class="bg-cardBg border border-gray-800 rounded-2xl p-6 glow-border">
+                <h3 class="text-lg font-semibold mb-4 text-purple-300"><i class="fa-solid fa-circle-plus mr-2"></i>เพิ่มสคริปต์ใหม่</h3>
+                <form id="addScriptForm" onsubmit="handleAddScript(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1">ชื่อเกม (Game Name)</label>
+                            <input type="text" id="gameName" required placeholder="เช่น Blox Fruits, Brookhaven" class="w-full px-4 py-2.5 bg-darkBg border border-gray-800 rounded-xl focus:outline-none focus:border-purple-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1">ชื่อสคริปต์ / ฟังก์ชันหลัก (Title)</label>
+                            <input type="text" id="scriptTitle" required placeholder="เช่น Auto Farm, Hub V3" class="w-full px-4 py-2.5 bg-darkBg border border-gray-800 rounded-xl focus:outline-none focus:border-purple-500 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">ลิงก์รูปภาพประกอบ (Image URL - ถ้ามี)</label>
+                        <input type="url" id="scriptImage" placeholder="https://example.com/image.jpg" class="w-full px-4 py-2.5 bg-darkBg border border-gray-800 rounded-xl focus:outline-none focus:border-purple-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">รายละเอียดเพิ่มเติม (Description)</label>
+                        <textarea id="scriptDesc" rows="2" placeholder="อธิบายฟังก์ชันคร่าวๆ เช่น ออโต้ฟาร์ม, ตีเร็ว, วาร์ป" class="w-full px-4 py-2.5 bg-darkBg border border-gray-800 rounded-xl focus:outline-none focus:border-purple-500 text-sm"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">โค้ดสคริปต์ Lua (Loadstring)</label>
+                        <textarea id="scriptCode" rows="4" required placeholder="loadstring(game:HttpGet('...'))()" class="w-full px-4 py-2.5 bg-darkBg border border-gray-800 rounded-xl focus:outline-none focus:border-purple-500 text-sm font-mono text-purple-300"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/20 transition">
+                        เผยแพร่สคริปต์
+                    </button>
+                </form>
+            </div>
+
+            <!-- Manage Existing Scripts -->
+            <div class="bg-cardBg border border-gray-800 rounded-2xl p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-200"><i class="fa-solid fa-list-check mr-2"></i>จัดการสคริปต์ที่มีอยู่ทั้งหมด</h3>
+                <div id="adminScriptList" class="space-y-3">
+                    <!-- Admin script items injected here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 py-6 text-center text-gray-500 text-xs">
+        <p>&copy; 2026 Roblox Script Hub. Designed for Admins & Players.</p>
+    </footer>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
+        <div class="bg-cardBg border border-gray-800 w-full max-w-md p-6 rounded-3xl glow-effect relative">
+            <button onclick="toggleLoginModal(false)" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="text-center mb-6">
+                <div class="inline-block p-3 bg-purple-500/10 text-purple-400 rounded-2xl mb-2 text-xl">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <h3 class="text-xl font-bold">เข้าสู่ระบบ / ยืนยันสิทธิ์แอดมิน</h3>
+                <p class="text-gray-400 text-xs mt-1">กรอกอีเมลเพื่อตรวจสอบสิทธิ์การเข้าถึง Admin Panel</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">อีเมลของคุณ (Email)</label>
+                    <input type="email" id="loginEmailInput" required placeholder="example@gmail.com" class="w-full px-4 py-3 bg-darkBg border border-gray-800 rounded-xl focus:outline-none focus:border-purple-500 text-sm">
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/20 transition">
+                    ยืนยันตัวตน
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT DETAIL MODAL -->
+    <div id="detailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
+        <div class="bg-cardBg border border-gray-800 w-full max-w-2xl p-6 rounded-3xl glow-effect relative max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleDetailModal(false)" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div id="detailModalContent">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2 text-sm font-medium">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastMessage">คัดลอกสคริปต์สำเร็จ!</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const ADMIN_EMAIL = "ooe419523@gmail.com";
+        
+        // Default Mock Scripts if empty
+        const defaultScripts = [
+            {
+                id: 1,
+                gameName: "Blox Fruits",
+                title: "Speed Hub V4 - Auto Farm",
+                image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500&auto=format&fit=crop&q=60",
+                desc: "ฟาร์มเลเวลออโต้, ออโต้ฮาคิ, ตีบอส, และวาปเกาะต่างๆ รวดเร็วปลอดภัย",
+                code: "loadstring(game:HttpGet('https://raw.githubusercontent.com/example/bloxfruits.lua'))()"
+            },
+            {
+                id: 2,
+                gameName: "Brookhaven RP",
+                title: "DarkAdmin Music & GUI",
+                image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60",
+                desc: "เสกบ้าน, เปลี่ยนสีรถ, เปิดเพลง ID เพลงดัง และเมนูแกล้งผู้เล่นอื่น",
+                code: "loadstring(game:HttpGet('https://raw.githubusercontent.com/example/brookhaven.lua'))()"
+            }
+        ];
+
+        // Load data from localStorage
+        let scripts = JSON.parse(localStorage.getItem('roblox_scripts')) || defaultScripts;
+        let currentUser = JSON.parse(localStorage.getItem('roblox_current_user')) || null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderAuthUI();
+            renderScripts();
+            renderAdminScriptList();
+        });
+
+        // Auth Render & Logic
+        function renderAuthUI() {
+            const authArea = document.getElementById("userAuthArea");
+            const adminActionContainer = document.getElementById("adminActionBtnContainer");
+
+            if (currentUser) {
+                let isAdmin = currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+                authArea.innerHTML = `
+                    <div class="flex items-center space-x-3 bg-cardBg border border-gray-800 px-3 py-1.5 rounded-2xl">
+                        <div class="w-8 h-8 rounded-full bg-purple-600/30 text-purple-400 flex items-center justify-center font-bold text-sm">
+                            ${currentUser.email.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="text-left hidden sm:block">
+                            <p class="text-xs font-semibold text-gray-200 truncate max-w-[120px]">${currentUser.email}</p>
+                            <p class="text-[10px] ${isAdmin ? 'text-emerald-400 font-bold' : 'text-gray-400'}">${isAdmin ? '👑 Admin' : 'Member'}</p>
+                        </div>
+                        <button onclick="handleLogout()" title="ออกจากระบบ" class="text-gray-400 hover:text-red-400 ml-2 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    </div>
+                `;
+
+                if (isAdmin) {
+                    adminActionContainer.innerHTML = `
+                        <button onclick="switchTab('admin')" class="w-full md:w-auto px-5 py-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/20 transition flex items-center justify-center space-x-2 text-sm">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span>เปิดแผงควบคุมแอดมิน</span>
+                        </button>
+                    `;
+                } else {
+                    adminActionContainer.innerHTML = ``;
+                }
+            } else {
+                authArea.innerHTML = `
+                    <button onclick="toggleLoginModal(true)" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-purple-500/20 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>เข้าสู่ระบบ / ตรวจสอบสิทธิ์</span>
+                    </button>
+                `;
+                adminActionContainer.innerHTML = ``;
+            }
+        }
+
+        function toggleLoginModal(show) {
+            const modal = document.getElementById("loginModal");
+            if (show) modal.classList.remove("hidden");
+            else modal.classList.add("hidden");
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById("loginEmailInput").value.trim();
+            currentUser = { email: email };
+            localStorage.setItem('roblox_current_user', JSON.stringify(currentUser));
+            toggleLoginModal(false);
+            renderAuthUI();
+            renderScripts();
+            
+            if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                showToast("เข้าสู่ระบบแอดมินสำเร็จ!", "emerald");
+                switchTab('admin');
+            } else {
+                showToast("เข้าสู่ระบบสำเร็จ (สิทธิ์สมาชิกทั่วไป)", "purple");
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('roblox_current_user');
+            renderAuthUI();
+            renderScripts();
+            switchTab('home');
+            showToast("ออกจากระบบแล้ว", "purple");
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            const homeView = document.getElementById("homeView");
+            const adminView = document.getElementById("adminView");
+
+            if (tab === 'home') {
+                homeView.classList.remove("hidden");
+                adminView.classList.add("hidden");
+                renderScripts();
+            } else if (tab === 'admin') {
+                if (!currentUser || currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+                    showToast("กรุณาเข้าสู่ระบบด้วยอีเมลแอดมินก่อน!", "red");
+                    toggleLoginModal(true);
+                    return;
+                }
+                homeView.classList.add("hidden");
+                adminView.classList.remove("hidden");
+                renderAdminScriptList();
+            }
+        }
+
+        // Render Scripts Grid
+        function renderScripts(filterText = "") {
+            const grid = document.getElementById("scriptsGrid");
+            const emptyState = document.getElementById("emptyState");
+            
+            const filtered = scripts.filter(s => 
+                s.gameName.toLowerCase().includes(filterText.toLowerCase()) || 
+                s.title.toLowerCase().includes(filterText.toLowerCase()) ||
+                s.desc.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                grid.innerHTML = "";
+                emptyState.classList.remove("hidden");
+                return;
+            }
+
+            emptyState.classList.add("hidden");
+            grid.innerHTML = filtered.map(s => `
+                <div class="bg-cardBg border border-gray-800 rounded-2xl overflow-hidden hover:border-purple-500/50 transition flex flex-col justify-between group">
+                    <div>
+                        <div class="h-40 w-full overflow-hidden relative bg-gray-900">
+                            <img src="${s.image || 'https://images.unsplash.com/photo-1614680376593-902f749f7ffc?w=500&auto=format&fit=crop&q=60'}" alt="${s.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <span class="absolute top-3 left-3 bg-darkBg/80 backdrop-blur-md text-purple-300 text-xs px-3 py-1 rounded-full border border-purple-500/30 font-medium">
+                                ${s.gameName}
+                            </span>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-
